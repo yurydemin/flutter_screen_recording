@@ -5,7 +5,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_foreground_plugin/flutter_foreground_plugin.dart';
 
 class FlutterScreenRecording {
-  static const MethodChannel _channel = const MethodChannel('flutter_screen_recording');
+  static const MethodChannel _channel =
+      const MethodChannel('flutter_screen_recording');
 
   /// Records the device screen, without audio, to a video file named
   /// [name].mp4 on the device.
@@ -30,8 +31,10 @@ class FlutterScreenRecording {
     int? height,
     String? titleNotification,
     String? messageNotification,
+    String? iconNotification,
   }) async {
-    await _maybeStartFGS(titleNotification, messageNotification);
+    await _maybeStartFGS(
+        titleNotification, messageNotification, iconNotification);
     if (width == null || height == null) {
       width = null;
       height = null;
@@ -49,8 +52,13 @@ class FlutterScreenRecording {
   /// [name].mp4 on the device. See [FlutterScreenRecoding.startRecordScreen]
   /// for information about the parameters.
   static Future<bool?> startRecordScreenAndAudio(String name,
-      {int? width, int? height, String? titleNotification, String? messageNotification}) async {
-    await _maybeStartFGS(titleNotification, messageNotification);
+      {int? width,
+      int? height,
+      String? titleNotification,
+      String? messageNotification,
+      String? iconNotification}) async {
+    await _maybeStartFGS(
+        titleNotification, messageNotification, iconNotification);
     if (width == null || height == null) {
       width = null;
       height = null;
@@ -72,22 +80,25 @@ class FlutterScreenRecording {
     return path;
   }
 
-  static _maybeStartFGS(String? titleNotification, String? messageNotification) async {
+  static _maybeStartFGS(String? titleNotification, String? messageNotification,
+      String? iconNotification) async {
     if (Platform.isAndroid) {
       await FlutterForegroundPlugin.setServiceMethodInterval(seconds: 5);
       await FlutterForegroundPlugin.setServiceMethod(globalForegroundService);
       return await FlutterForegroundPlugin.startForegroundService(
-        holdWakeLock: false,
-        onStarted: () async {
-          print("Foreground on Started");
-        },
-        onStopped: () {
-          print("Foreground on Stopped");
-        },
-        title: titleNotification ?? '',
-        content: messageNotification ?? '',
-        iconName: "org_thebus_foregroundserviceplugin_notificationicon",
-      );
+          holdWakeLock: false,
+          onStarted: () async {
+            print("Foreground on Started");
+          },
+          onStopped: () {
+            print("Foreground on Stopped");
+          },
+          title: titleNotification ?? '',
+          content: messageNotification ?? '',
+          iconName: iconNotification ?? "ic_launcher",
+          stopAction: true,
+          stopIcon: iconNotification ?? "ic_launcher",
+          stopText: "FINISH");
     }
   }
 
