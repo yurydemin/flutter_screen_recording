@@ -34,7 +34,10 @@ class FlutterScreenRecording {
     String? iconNotification,
   }) async {
     await _maybeStartFGS(
-        titleNotification, messageNotification, iconNotification);
+      titleNotification,
+      messageNotification,
+      iconNotification,
+    );
     if (width == null || height == null) {
       width = null;
       height = null;
@@ -45,6 +48,9 @@ class FlutterScreenRecording {
       "width": width,
       "height": height,
     });
+    if (start == null || !start) {
+      await _stopForegroundService();
+    }
     return start;
   }
 
@@ -74,31 +80,36 @@ class FlutterScreenRecording {
 
   static Future<String> get stopRecordScreen async {
     final String path = await _channel.invokeMethod('stopRecordScreen');
-    if (Platform.isAndroid) {
-      await FlutterForegroundPlugin.stopForegroundService();
-    }
+    await _stopForegroundService();
     return path;
   }
 
-  static _maybeStartFGS(String? titleNotification, String? messageNotification,
-      String? iconNotification) async {
+  static _maybeStartFGS(
+    String? titleNotification,
+    String? messageNotification,
+    String? iconNotification,
+  ) async {
     if (Platform.isAndroid) {
       await FlutterForegroundPlugin.setServiceMethodInterval(seconds: 5);
       await FlutterForegroundPlugin.setServiceMethod(globalForegroundService);
       return await FlutterForegroundPlugin.startForegroundService(
-          holdWakeLock: false,
-          onStarted: () async {
-            print("Foreground on Started");
-          },
-          onStopped: () {
-            print("Foreground on Stopped");
-          },
-          title: titleNotification ?? '',
-          content: messageNotification ?? '',
-          iconName: iconNotification ?? "ic_launcher",
-          stopAction: true,
-          stopIcon: iconNotification ?? "ic_launcher",
-          stopText: "FINISH");
+        holdWakeLock: false,
+        onStarted: () async {
+          print("Foreground on Started");
+        },
+        onStopped: () {
+          print("Foreground on Stopped");
+        },
+        title: titleNotification ?? '',
+        content: messageNotification ?? '',
+        iconName: iconNotification ?? "ic_launcher",
+      );
+    }
+  }
+
+  static _stopForegroundService() async {
+    if (Platform.isAndroid) {
+      await FlutterForegroundPlugin.stopForegroundService();
     }
   }
 
